@@ -3,6 +3,10 @@ import Form from "./components/Form";
 import FilterButton from "./components/FilterButton";
 import Todo from "./components/Todo";
 import { nanoid } from "nanoid";
+import {
+  useQuery,
+} from '@tanstack/react-query'
+import { getTodoList } from "./api";
 
 function usePrevious(value) {
   const ref = useRef(null);
@@ -20,9 +24,23 @@ const FILTER_MAP = {
 
 const FILTER_NAMES = Object.keys(FILTER_MAP);
 
-function App(props) {
-  const [tasks, setTasks] = useState(props.tasks);
+function App() {
+  const query = useQuery ({queryKey: ['todos'], queryFn: getTodoList})
+  if (query.isLoading){
+    return < p >loading...</p>
+  }
+
+  if (query.isError) {
+    return < p >error:{query.error.message}</p>
+  } 
+  
+  return < AppContent tasks = {query.data}/>
+}
+
+function AppContent(props){
   const [filter, setFilter] = useState("All");
+  const {tasks} = props
+
 
   function toggleTaskCompleted(id) {
     const updatedTasks = tasks.map((task) => {
@@ -34,12 +52,12 @@ function App(props) {
       }
       return task;
     });
-    setTasks(updatedTasks);
+    //setTasks(updatedTasks);
   }
 
   function deleteTask(id) {
     const remainingTasks = tasks.filter((task) => id !== task.id);
-    setTasks(remainingTasks);
+    //setTasks(remainingTasks);
   }
 
   function editTask(id, newName) {
@@ -52,7 +70,7 @@ function App(props) {
       // Return the original task if it's not the edited task
       return task;
     });
-    setTasks(editedTaskList);
+    //setTasks(editedTaskList);
   }
 
   const taskList = tasks
@@ -80,7 +98,7 @@ function App(props) {
 
   function addTask(name) {
     const newTask = { id: "todo-" + nanoid(), name: name, completed: false };
-    setTasks([...tasks, newTask]);
+    //setTasks([...tasks, newTask]);
   }
 
   const tasksNoun = taskList.length !== 1 ? "tasks" : "task";
@@ -98,7 +116,7 @@ function App(props) {
   return (
     <div className="todoapp stack-large">
       <h1>TodoMatic</h1>
-      <Form addTask={addTask} />
+      <Form />
       <div className="filters btn-group stack-exception">{filterList}</div>
       <h2 id="list-heading" tabIndex="-1" ref={listHeadingRef}>
         {headingText}
